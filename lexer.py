@@ -41,6 +41,7 @@ class Lexer:
         self._read_position = 0
         self._line_count = 0
         self._ch = ''
+        self._tokens = []
 
         self.init_token_types()
         self.init_keywords_dict()
@@ -76,6 +77,10 @@ class Lexer:
         self.NOT_EQ = 22
         self.LEFT_PARENT = 23
         self.RIGHT_PARENT = 24
+
+    @property
+    def tokens(self):
+        return self._tokens
 
     def init_keywords_dict(self):
         self._keywords_dict = {}
@@ -133,8 +138,10 @@ class Lexer:
 
         if(self._ch):
             if self._ch == self.EOF:
-                token = Token(self.EOF, self._ch, line_count)
-                self.continue_read = False
+                token = Token(self.EOF, "EOF", line_count)
+                continue_read = False
+            elif self._ch == ';':
+                token = Token(self.SEMICOLON, self._ch, line_count)
             elif self._ch == "=":
                 peeked = self.peek_char()
                 #check is a equal sign
@@ -142,34 +149,42 @@ class Lexer:
                     pass
                 else:
                     token = Token(self.ASSIGN_SIGN, self._ch, line_count)
-            elif self._ch.isalpha():
-                identifier = self.read_identifier()
-                if identifier in self._keywords_dict:
-                    token = self._keywords_dict[identifier]
-                else:
-                    token = Token(self.ILLEGAL, identifier, line_count)
-            elif self._ch.isdigit():
-                num = self.read_number()
-                token = Token(self.INTEGER, num, line_count)
             else:
-                token = Token(self.ILLEGAL, self._ch, line_count)
-
+                identifier = self.read_identifier()
+                if identifier:
+                    if identifier in self._keywords_dict:
+                        token = self._keywords_dict[identifier]
+                    else:
+                        token = Token(self.IDENTIFIER, identifier, line_count)
+                else:
+                    identifier = self.read_number()
+                    if identifier:
+                        token = Token(self.INTEGER, identifier, line_count)
+                if not identifier:
+                    token = None
+                continue_read = False
         if(continue_read):
             self.read_char()
         return token
 
     def lexing(self):
-        tokens = []
         self.read_char()
         token = self.next_token()
 
         while(token is not None and (token.token_type != self.EOF)):
-            tokens.append(token)
+            self.tokens.append(token)
             token = self.next_token()
 
-        [print(x) for x in tokens]
+        #add EOF to th list
+        self.tokens.append(token)
+        return self
 
 
 if __name__ == "__main__":
-    lexer = Lexer("let a = 122;")
-    lexer.lexing()
+    source = """
+        let a = 122;
+        let b = 69;
+    """
+    lexer = Lexer(source).lexing()
+    tokens = lexer.tokens
+    [print(x) for x in tokens]
