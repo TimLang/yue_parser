@@ -142,11 +142,41 @@ class Lexer:
                 continue_read = False
             elif self._ch == ';':
                 token = Token(self.SEMICOLON, self._ch, line_count)
+            elif self._ch == "+":
+                token = Token(self.PLUS_SIGN, self._ch, line_count)
+            elif self._ch == "-":
+                token = Token(self.MINUS_SIGN, self._ch, line_count)
+            elif self._ch == "!":
+                if self.peek_char() == "=":
+                    self.read_char()
+                    token = Token(self.NOT_EQ, self._ch, line_count)
+                token = Token(self.BANG_SIGN, self._ch, line_count)
+            elif self._ch == "*":
+                token = Token(self.ASTERISK, self._ch, line_count)
+            elif self._ch == "/":
+                token = Token(self.SLASH, self._ch, line_count)
+            elif self._ch == ">":
+                token = Token(self.GT, self._ch, line_count)
+            elif self._ch == "<":
+                token = Token(self.LT, self._ch, line_count)
+            elif self._ch == "(":
+                token = Token(self.LEFT_PARENT, self._ch, line_count)
+            elif self._ch == ")":
+                token = Token(self.RIGHT_PARENT, self._ch, line_count)
+            elif self._ch == "{":
+                token = Token(self.LEFT_BRACE, self._ch, line_count)
+            elif self._ch == "}":
+                token = Token(self.RIGHT_BRACE, self._ch, line_count)
+            elif self._ch == "[":
+                token = Token(self.LEFT_BRACKET, self._ch, line_count)
+            elif self._ch == "]":
+                token = Token(self.RIGHT_BRACKET, self._ch, line_count)
+            elif self._ch == ",":
+                token = Token(self.COMMA, self._ch, line_count)
             elif self._ch == "=":
-                peeked = self.peek_char()
-                #check is a equal sign
-                if peeked == '=':
-                    pass
+                if self.peek_char() == '=':
+                    self.read_char()
+                    token = Token(self.EQ, self._ch, line_count)
                 else:
                     token = Token(self.ASSIGN_SIGN, self._ch, line_count)
             else:
@@ -184,6 +214,10 @@ if __name__ == "__main__":
     source = """
         let a = 122;
         let b = 69;
+        !x = 5;
+        if ( x == 5 ) {
+            x = 9;
+        }
     """
     lexer = Lexer(source).lexing()
     tokens = lexer.tokens
