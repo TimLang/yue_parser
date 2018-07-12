@@ -9,13 +9,13 @@
 * EOF
 
 #### keywords
-- mechanism
+- mechanisms
     - Recursive descent
     - State machine
-- key method
+- key methods
     - next_token()
     - peek_token()
-- key return variable
+- key return variables
     - token_list
 
 # Parser
@@ -26,6 +26,6 @@
 - Number node
 - Expression node
 - Caller node
-        
+
 # Generator
 

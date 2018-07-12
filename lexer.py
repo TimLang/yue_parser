@@ -208,17 +208,3 @@ class Lexer:
         #add EOF to th list
         self.tokens.append(token)
         return self
-
-
-if __name__ == "__main__":
-    source = """
-        let a = 122;
-        let b = 69;
-        !x = 5;
-        if ( x == 5 ) {
-            x = 9;
-        }
-    """
-    lexer = Lexer(source).lexing()
-    tokens = lexer.tokens
-    [print(x) for x in tokens]
