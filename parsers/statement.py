@@ -4,6 +4,7 @@ from .node import Node
 class Statement(Node):
 
     def __init__(self):
+        super(Statement, self)
         self._type = type(self).__name__
 
     @property
@@ -16,7 +17,7 @@ class Statement(Node):
 
 class LetStatement(Statement):
     def __init__(self, props={}):
-        super(Statement, self)
+        super(LetStatement, self).__init__()
         self._token = props.get('token')
         self._name = props.get('identifier')
         self._value = props.get('expression')
@@ -24,15 +25,18 @@ class LetStatement(Statement):
 
 class ReturnStatement(Statement):
     def __init__(self, props={}):
-        super(Statement, self)
+        super(ReturnStatement, self).__init__()
         self._token = props.get('token')
         self._expression = props.get('expression')
         self._token_iteral = """Return with {}""".format(self._expression)
 
 class ExpressionStatement(Statement):
     def __init__(self, props={}):
-        super(Statement, self)
+        super(ExpressionStatement, self).__init__()
+        self._token = props.get('token')
+        self._expression = props.get('expression')
+        self._token_iteral = """Expression is {}""".format(self._expression)
 
 class BlockStatement(Statement):
     def __init__(self, props={}):
-        super(Statement, self)
+        super(BlockStatement, self).__init__()

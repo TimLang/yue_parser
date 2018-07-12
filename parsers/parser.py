@@ -1,6 +1,6 @@
 
 from .node import Node
-from .expression import Expression, Identifier,  PrefixExpression, InfixExpression, IntegerLiteral, Boolean, IfExpression
+from .expression import Identifier,  PrefixExpression, InfixExpression, IntegerLiteral, Boolean, IfExpression
 from .statement import Statement, LetStatement, ReturnStatement, ExpressionStatement, BlockStatement
 
 from lexer import Lexer
@@ -14,6 +14,16 @@ class Program():
         return self._statements
 
 class Parser():
+
+    LOWEST = 0
+    EQUALS = 1  # ==
+    LESSGREATER = 2 # < or >
+    SUM = 3
+    PRODUCT = 4
+    PREFIX = 5 #-X or !X
+    CALL = 6  #myFunction(X)
+    INDEX = 7 # getting item from array by index
+
     def __init__(self, lexer):
         self._lexer = lexer.lexing()
         self._token_pos = 0
@@ -22,6 +32,9 @@ class Parser():
         self.next_token()
         self.next_token()
         self.program = Program()
+        self_precedences_dict = self.init_precedences_dict()
+
+        self._prefix_parser_funcs = self.register_prefix_parser_funcs()
 
     def next_token(self):
         self._cur_token = self._peek_token
@@ -41,28 +54,55 @@ class Parser():
         token_type = self._cur_token.token_type
         if token_type == self._lexer.LET:
             return self.parse_letstatement()
-        if token_type == self._lexer.RETURN:
-            return self.parser_returnstatment()
+        elif token_type == self._lexer.RETURN:
+            return self.parse_returnstatment()
+        else:
+            return self.parse_expression_statement()
 
     def parse_letstatement(self):
         stmt_dict = {}
         if not self.expect_peek(self._lexer.IDENTIFIER):
             return
-        stmt_dict['identifier'] = Identifier({ 'token': self._cur_token.literal})
+        stmt_dict['identifier'] = Identifier({'token_iteral': self._cur_token.literal})
         if not self.expect_peek(self._lexer.ASSIGN_SIGN):
             return
-        if not self.expect_peek(self._lexer.INTEGER):
+        self.next_token()
+        stmt_dict['expression'] = self.parse_expression(Parser.LOWEST)
+
+        if not self.expect_peek(self._lexer.SEMICOLON):
             return
-        stmt_dict['expression'] = Expression({ 'token_iteral': self._cur_token.literal})
 
         return LetStatement(stmt_dict)
 
-    def parser_returnstatment(self):
+    def parse_returnstatment(self):
         stmt_dict = {}
         if not self.expect_peek(self._lexer.IDENTIFIER):
             return
-        stmt_dict['expression'] = Expression({ 'token_iteral': self._cur_token.literal})
+        stmt_dict['expression'] = self.parse_expression(Parser.LOWEST)
         return ReturnStatement(stmt_dict)
+
+    def parse_expression_statement(self):
+        stmt_dict = {}
+        stmt_dict['token'] = self._cur_token
+        stmt_dict['expression'] = self.parse_expression(Parser.LOWEST)
+        stmt = ExpressionStatement(stmt_dict)
+
+        if self.peek_token_is(self._lexer.SEMICOLON):
+            self.next_token()
+        return stmt
+
+    def parse_expression(self, precedence):
+        func = None
+        try:
+            func = self._prefix_parser_funcs[self._cur_token.token_type]
+        except:
+            pass
+        if func:
+            expression = func()
+            return expression
+        else:
+            # raise "TODO handle exception"
+            pass
 
     def peek_token_is(self, token_type):
         return self._peek_token.token_type == token_type
@@ -73,3 +113,47 @@ class Parser():
             return True
         else:
             return False
+
+    def init_precedences_dict(self):
+        precedences_dict = {}
+        precedences_dict[self._lexer.EQ] = Parser.EQUALS
+        precedences_dict[self._lexer.NOT_EQ] = Parser.EQUALS
+        precedences_dict[self._lexer.LT] =Parser. LESSGREATER
+        precedences_dict[self._lexer.GT] = Parser.LESSGREATER
+        precedences_dict[self._lexer.PLUS_SIGN] = Parser.SUM
+        precedences_dict[self._lexer.MINUS_SIGN] = Parser.SUM
+        precedences_dict[self._lexer.SLASH] = Parser.PRODUCT
+        precedences_dict[self._lexer.ASTERISK] = Parser.PRODUCT
+        precedences_dict[self._lexer.LEFT_PARENT] = Parser.CALL
+        precedences_dict[self._lexer.LEFT_BRACKET] = Parser.INDEX
+
+        return precedences_dict
+
+    def register_prefix_parser_funcs(self):
+        tmp_dict = {}
+
+        tmp_dict[self._lexer.IDENTIFIER] = self.create_identifier()
+        tmp_dict[self._lexer.BANG_SIGN] = self.create_prefix_expression()
+        tmp_dict[self._lexer.MINUS_SIGN] = self.create_prefix_expression()
+        tmp_dict[self._lexer.TRUE] = self.create_boolean()
+        tmp_dict[self._lexer.FALSE] = self.create_boolean()
+        tmp_dict[self._lexer.INTEGER] = self.create_integer()
+
+        return tmp_dict
+
+    def create_prefix_expression(self):
+        return lambda: self._prepare_prefix_expression()
+
+    def create_identifier(self):
+        return lambda: Identifier({ 'token' : self._cur_token.token_type, 'token_iteral': self._cur_token.literal })
+
+    def create_boolean(self):
+        return lambda: Boolean({ 'token' : self._cur_token.token_type, 'token_iteral': self._cur_token.literal })
+
+    def create_integer(self):
+        return lambda: IntegerLiteral({ 'token' : self._cur_token.token_type, 'token_iteral': self._cur_token.literal })
+
+    def _prepare_prefix_expression(self):
+        cur_tok = self._cur_token
+        self.next_token()
+        return PrefixExpression({'token' : cur_tok.token_type, 'operator' : cur_tok.literal, 'expression' : self.parse_expression(Parser.PREFIX) })

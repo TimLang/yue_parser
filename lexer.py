@@ -77,6 +77,8 @@ class Lexer:
         self.NOT_EQ = 22
         self.LEFT_PARENT = 23
         self.RIGHT_PARENT = 24
+        self.LEFT_BRACKET = 25
+        self.RIGHT_BRACKET = 26
 
     @property
     def tokens(self):

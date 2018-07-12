@@ -3,8 +3,9 @@ from .node import Node
 
 class Expression(Node):
     def __init__(self, props={}):
-        super(Node, self)
-        self._token_iteral = props['token_iteral']
+        super(Expression, self)
+        self._token = props.get('token')
+        self._token_iteral = props.get('token_iteral')
 
     # @property
     # def literal(self):
@@ -15,29 +16,28 @@ class Expression(Node):
 
 class Identifier(Expression):
     def __init__(self, props={}):
-        super(Expression, self)
-        self._token = props['token']
-
-    def __str__(self):
-        return self._token
+        super(Identifier, self).__init__(props)
 
 class PrefixExpression(Expression):
     def __init__(self, props={}):
-        super(Expression, self)
+        super(PrefixExpression, self).__init__(props)
+        self._operator = props.get('operator')
+        self._right = props.get('expression')
+        self._token_iteral = """({}{})""".format(self._operator, self._right)
 
 class InfixExpression(Expression):
     def __init__(self, props={}):
-        super(Expression, self)
+        super(InfixExpression, self).__init__(props)
 
 class IntegerLiteral(Expression):
     def __init__(self, props={}):
-        super(Expression, self)
+        super(IntegerLiteral, self).__init__(props)
 
 class Boolean(Expression):
     def __init__(self, props={}):
-        super(Expression, self)
+        super(Boolean, self).__init__(props)
 
 class IfExpression(Expression):
     def __init__(self, props={}):
-        super(Expression, self)
+        super(IfExpression, self).__init__(props)
 
