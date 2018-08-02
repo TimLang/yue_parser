@@ -28,6 +28,10 @@ class PrefixExpression(Expression):
 class InfixExpression(Expression):
     def __init__(self, props={}):
         super(InfixExpression, self).__init__(props)
+        self._left_expression = props.get('left_expression')
+        self._operator = props.get('operator')
+        self._right_expression = props.get('right_expression')
+        self._token_iteral = """({} {} {})""".format(self._left_expression, self._operator, self._right_expression)
 
 class IntegerLiteral(Expression):
     def __init__(self, props={}):

@@ -32,9 +32,10 @@ class Parser():
         self.next_token()
         self.next_token()
         self.program = Program()
-        self_precedences_dict = self.init_precedences_dict()
+        self._precedences_dict = self.init_precedences_dict()
 
         self._prefix_parser_funcs = self.register_prefix_parser_funcs()
+        self._infix_parser_funcs = self.register_infix_parser_funcs()
 
     def next_token(self):
         self._cur_token = self._peek_token
@@ -141,8 +142,25 @@ class Parser():
 
         return tmp_dict
 
+    def register_infix_parser_funcs(self):
+        tmp_dict = {}
+
+        tmp_dict[self._lexer.PLUS_SIGN] = self.create_infix_expression()
+        tmp_dict[self._lexer.MINUS_SIGN] = self.create_infix_expression()
+        tmp_dict[self._lexer.SLASH] = self.create_infix_expression()
+        tmp_dict[self._lexer.ASTERISK] = self.create_infix_expression()
+        tmp_dict[self._lexer.EQ] = self.create_infix_expression()
+        tmp_dict[self._lexer.NOT_EQ] = self.create_infix_expression()
+        tmp_dict[self._lexer.LT] = self.create_infix_expression()
+        tmp_dict[self._lexer.GT] = self.create_infix_expression()
+
+        return tmp_dict
+
     def create_prefix_expression(self):
         return lambda: self._prepare_prefix_expression()
+
+    def create_infix_expression(self):
+        return lambda: self._prepare_infix_expression()
 
     def create_identifier(self):
         return lambda: Identifier({ 'token' : self._cur_token.token_type, 'token_iteral': self._cur_token.literal })
@@ -157,3 +175,30 @@ class Parser():
         cur_tok = self._cur_token
         self.next_token()
         return PrefixExpression({'token' : cur_tok.token_type, 'operator' : cur_tok.literal, 'expression' : self.parse_expression(Parser.PREFIX) })
+
+    def _prepare_infix_expression(self, left_expression):
+        props = {}
+        cur_tok = self._cur_token
+
+        props['left_expression'] = left_expression
+        props['operator'] = cur_tok.literal
+
+        cur_precedence = self._current_precedence()
+        self.next_token()
+        props['right_expression'] = self.parse_expression(cur_precedence)
+
+        return InfixExpression(props)
+
+    def _peek_precedence(self):
+        pd = self._precedences_dict.get(self._peek_token.token_type)
+        if pd:
+            return pd
+        else:
+            return Parser.LOWEST
+
+    def _current_precedence(self):
+        pd = self._precedences_dict.get(self._cur_token.token_type)
+        if pd:
+            return pd
+        else:
+            return Parser.LOWEST
