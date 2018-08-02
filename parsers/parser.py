@@ -94,16 +94,22 @@ class Parser():
 
     def parse_expression(self, precedence):
         func = None
+        infix_expression = None
         try:
             func = self._prefix_parser_funcs[self._cur_token.token_type]
         except:
             pass
         if func:
-            expression = func()
-            return expression
+            left_expression = func()
+            if (not self.peek_token_is(self._lexer.SEMICOLON)) and (precedence < self._peek_precedence()):
+                infix_expression = self._infix_parser_funcs[self._peek_token.token_type]
+                if not infix_expression:
+                    return left_expression
+                self.next_token()
+                left_expression = infix_expression(left_expression)
+            return left_expression
         else:
-            # raise "TODO handle exception"
-            pass
+            return None
 
     def peek_token_is(self, token_type):
         return self._peek_token.token_type == token_type
@@ -160,7 +166,7 @@ class Parser():
         return lambda: self._prepare_prefix_expression()
 
     def create_infix_expression(self):
-        return lambda: self._prepare_infix_expression()
+        return lambda left_expression: self._prepare_infix_expression(left_expression)
 
     def create_identifier(self):
         return lambda: Identifier({ 'token' : self._cur_token.token_type, 'token_iteral': self._cur_token.literal })

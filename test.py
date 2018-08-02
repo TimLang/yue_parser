@@ -60,7 +60,15 @@ def test_parsing_prefix_expression():
     print("===========\n")
 
 def test_parsing_infix_expression():
-    pass
+    source_code = """
+    1+2*3
+    """
+    lexer = Lexer(source_code)
+    program = Parser(lexer).exec_program()
+
+    print("===========\n")
+    print(program.statements[0]._token_iteral)
+    print("===========\n")
 
 def test_parsing_boolean():
     pass
@@ -81,6 +89,7 @@ if __name__ == "__main__":
     test_parsing_block_statement()
 
     test_parsing_prefix_expression()
+    test_parsing_infix_expression()
     test_parsing_integer_literal()
     test_parsing_array_literal()
 
