@@ -93,23 +93,24 @@ class Parser():
         return stmt
 
     def parse_expression(self, precedence):
-        func = None
+        prefix_func = None
         infix_expression = None
+        left_expression = None
         try:
-            func = self._prefix_parser_funcs[self._cur_token.token_type]
+            prefix_func = self._prefix_parser_funcs[self._cur_token.token_type]
         except:
             pass
-        if func:
-            left_expression = func()
-            if (not self.peek_token_is(self._lexer.SEMICOLON)) and (precedence < self._peek_precedence()):
+        if prefix_func:
+            left_expression = prefix_func()
+            print(self._cur_token, precedence, self._peek_precedence())
+            while (not self.peek_token_is(self._lexer.SEMICOLON)) and (precedence < self._peek_precedence()):
+                print("---", left_expression)
                 infix_expression = self._infix_parser_funcs[self._peek_token.token_type]
                 if not infix_expression:
                     return left_expression
                 self.next_token()
                 left_expression = infix_expression(left_expression)
-            return left_expression
-        else:
-            return None
+        return left_expression
 
     def peek_token_is(self, token_type):
         return self._peek_token.token_type == token_type
@@ -208,3 +209,4 @@ class Parser():
             return pd
         else:
             return Parser.LOWEST
+

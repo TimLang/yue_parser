@@ -10,11 +10,12 @@ def test_lexing():
         if ( x == 5 ) {
             x = 9;
         }
+        1+2*3;
     """
     lexer = Lexer(source).lexing()
     tokens = lexer.tokens
     # [print(x) for x in tokens]
-    assert len(tokens) == 28
+    assert len(tokens) == 34
 
 def test_parsing_let_statement():
     source_code = """
@@ -61,7 +62,7 @@ def test_parsing_prefix_expression():
 
 def test_parsing_infix_expression():
     source_code = """
-    1+2*3
+    1-2+3;
     """
     lexer = Lexer(source_code)
     program = Parser(lexer).exec_program()
